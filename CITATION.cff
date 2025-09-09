@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - family-names: "Smashers"
+    given-names: "Hulk"
+    email: "hulk.smashers@ucl.ac.uk"
+repository-code: "https://github.com/luigigisolfi/transient_smash"
+title: "transient_smash: A cookiecutter package with UCL ARC recommendations."
+license: "BSD-3-Clause"
