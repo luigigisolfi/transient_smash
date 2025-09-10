@@ -16,3 +16,8 @@ class Model(ABC):
             
         """
         ...
+
+class SimpleModel(Model):
+    def simulator(self, x, a, b):
+        """A simple linear model: y = a * x + b."""
+        return a * x + b
