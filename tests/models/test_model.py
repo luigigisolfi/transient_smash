@@ -11,7 +11,7 @@ class TestSimpleModel(unittest.TestCase):
 
         ### Test in the case of an integer input or an np array
         self.assertEqual(simple_model.evaluate(x=1,a=1,b=1),2)
-        self.assertTrue((simple_model.avaluate(x=np.array([1,2,3]),a=1,b=1)==np.array([2,3,4])).all())
+        self.assertTrue((simple_model.evaluate(x=np.array([1,2,3]),a=1,b=1)==np.array([2,3,4])).all())
     
 class TestNoisySimpleModel(unittest.TestCase):
 
