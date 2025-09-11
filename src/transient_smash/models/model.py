@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from scipy.stats import norm
 
 
 class Model(ABC):
@@ -21,3 +22,19 @@ class SimpleModel(Model):
     def simulator(self, x, a, b):
         """A simple linear model: y = a * x + b."""
         return a * x + b
+    
+class SimpleModel_PlusNoise(Model):
+
+    def simulator(self, x, a, b, *args):
+        """A simple linear model: y = a * x + b."""
+        return a * x + b + self.noise(x, *args)
+
+    @abstractmethod
+    def noise(self, x, *args):
+        ...
+
+class SimpleModel_PlusSimpleNoise(SimpleModel_PlusNoise):
+
+    def noise(self,x,sigma,seed=42):
+        """Add Gaussian noise to a dataset with defined variance, sigma"""
+        return norm.rvs(loc=0,scale=sigma,size=len(x),random_state=seed)
