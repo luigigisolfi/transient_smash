@@ -3,6 +3,12 @@ import unittest
 import numpy as np
 from scipy.stats import norm
 
+class TestModel(unittest.TestCase):
+    def test_abstract_model(self):
+        """Test that the abstract Model class cannot be instantiated."""
+        with self.assertRaises(TypeError):
+            model = Model()  # This should raise a TypeError since Model is abstract
+
 class TestSimpleModel(unittest.TestCase):
     
     def test_evaluate(self):
