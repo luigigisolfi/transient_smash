@@ -79,10 +79,10 @@ class Model(ABC):
             PyTorch distribution-like priors for each parameter.
             
         """
-        if hasattr(self,'priors'):
-            return process_prior(self.priors)
-        else:
-            raise("Invalid Priors: Priors have not been set")
+        if not hasattr(self,'priors'):
+            raise ValueError("Priors have not been set. Please use the 'set_priors' method to set them before calling this method.")
+        return process_prior(self.priors)
+            
 
 
 class SimpleModel(Model):

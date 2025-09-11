@@ -37,6 +37,36 @@ class TestSimpleModel(unittest.TestCase):
         simple_model.set_input_data(np.array([1,2,3]))
         self.assertTrue((simple_model.simulator(a,b)==np.array([2,3,4])).all())
 
+    def test_set_priors(self):
+        from torch.distributions import Uniform
+        """Test setting prior distributions for model parameters."""
+        simple_model = SimpleModel()
+        priors = {'a': ('uniform', 0, 2), 'b': ('uniform', 0, 2)}
+        simple_model.set_priors(priors)
+        # Test that the priors are a list of length 2 (for a and b)
+        self.assertEqual(len(simple_model.priors), 2)
+        # Test that setting priors works correctly
+        self.assertEqual(simple_model.priors['a'], Uniform(0, 2))
+        self.assertEqual(simple_model.priors['b'], Uniform(0, 2))
+
+    def test_get_sbi_priors(self):
+        from torch.distributions import Uniform
+        """Test getting sbi-compatible prior distributions."""
+        simple_model = SimpleModel()
+        # Test that getting priors without setting them raises an error
+        with self.assertRaises(ValueError):
+            simple_model.get_sbi_priors()
+        # Now set priors and test getting them
+        priors = {'a': ('uniform', 0, 2), 'b': ('uniform', 0, 2)}
+        simple_model.set_priors(priors)
+        sbi_priors = simple_model.get_sbi_priors()
+        # Test that the returned priors are a list of length 2 (for a and b)
+        self.assertEqual(len(sbi_priors), 2)
+        # Test that the priors are the expected type and values
+        self.assertEqual(sbi_priors[0], Uniform(0, 2))
+        self.assertEqual(sbi_priors[1], Uniform(0, 2))
+
+
     def test_get_sbi_simulator(self):
         """Test getting an sbi-compatible simulator function."""
         simple_model = SimpleModel()
