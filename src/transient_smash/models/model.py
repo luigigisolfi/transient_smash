@@ -31,6 +31,10 @@ class Model(ABC):
             Simulated output of the model.
             
         """
+        # Check if input data has been set
+        if not hasattr(self, 'x'):
+            raise ValueError("Input data 'x' has not been set. Please use the 'set_input_data' method to set it before calling the simulator.")
+        
         return self.evaluate(self.x, *args)
 
     def set_input_data(self, x: np.ndarray):
