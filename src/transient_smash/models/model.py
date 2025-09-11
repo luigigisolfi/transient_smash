@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 from scipy.stats import norm,uniform
 import torch
-from torch.distributions import Normal,Uniform, Independent
+from torch.distributions import Normal, Uniform
+from sbi.utils import MultipleIndependent
 from sbi.utils import process_prior, process_simulator
 import numpy as np
 
@@ -71,20 +72,20 @@ class Model(ABC):
             
         """
         num_dims = len(priors.keys())
-        sampled_priors = []
+        priors_list = []
         for param in priors.keys():
             dist = priors[param][0]
             if dist.lower()=='uniform':
-                
-                sampled_priors.append(
-                        Uniform(torch.tensor(priors[param][1]),torch.tensor(priors[param][2])))
+
+                priors_list.append(
+                        Uniform(torch.tensor([priors[param][1]]),torch.tensor([priors[param][2]])))
             elif dist.lower()=='normal':
-                sampled_priors.append(
-                        Normal(torch.tensor(priors[param][1]),torch.tensor(priors[param][2])))
+                priors_list.append(
+                        Normal(torch.tensor([priors[param][1]]),torch.tensor([priors[param][2]])))
             else:
                 raise ValueError(f"Invalid distribution selected: {dist}")
-        self.priors = sampled_priors
-    
+        self.priors = MultipleIndependent(priors_list)
+
     def get_sbi_priors(self):
         """Get prior distributions for model parameters.
         
@@ -94,7 +95,7 @@ class Model(ABC):
         """
         if not hasattr(self,'priors'):
             raise ValueError("Priors have not been set. Please use the 'set_priors' method to set them before calling this method.")
-        # return process_prior(self.priors)
+
         return self.priors
             
 

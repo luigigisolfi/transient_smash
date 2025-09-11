@@ -42,20 +42,20 @@ class TestSimpleModel(unittest.TestCase):
         simple_model = SimpleModel()
         # Test setting a prior which is not recognized raises an error
         with self.assertRaises(ValueError):
-            simple_model.set_priors({'a': ('unknown', 0, 1)})
+            simple_model.set_priors({'a': ('unknown', 0., 1.)})
         # Now set valid priors and test
-        priors = {'a': ('uniform', 0, 2), 'b': ('normal', 0, 2)}
+        priors = {'a': ('uniform', 0., 2.), 'b': ('normal', 0., 2.)}
         simple_model.set_priors(priors)
         # Test that the priors are a list of length 2 (for a and b)
-        self.assertEqual(len(simple_model.priors), 2)
+        self.assertEqual(len(simple_model.priors.dists), 2)
         # Test that the priors are the expected type
-        self.assertIsInstance(simple_model.priors[0], Uniform)
-        self.assertIsInstance(simple_model.priors[1], Normal)
+        self.assertIsInstance(simple_model.priors.dists[0], Uniform)
+        self.assertIsInstance(simple_model.priors.dists[1], Normal)
         # Test that the priors have the expected parameters
-        self.assertEqual(simple_model.priors[0].low, 0.)
-        self.assertEqual(simple_model.priors[0].high, 2.)
-        self.assertEqual(simple_model.priors[1].loc, 0.)
-        self.assertEqual(simple_model.priors[1].scale, 2.)
+        self.assertEqual(simple_model.priors.dists[0].low, 0.)
+        self.assertEqual(simple_model.priors.dists[0].high, 2.)
+        self.assertEqual(simple_model.priors.dists[1].loc, 0.)
+        self.assertEqual(simple_model.priors.dists[1].scale, 2.)
 
     def test_get_sbi_priors(self):
         from torch.distributions import Uniform, Normal
@@ -65,25 +65,34 @@ class TestSimpleModel(unittest.TestCase):
         with self.assertRaises(ValueError):
             simple_model.get_sbi_priors()
         # Now set priors and test getting them
-        priors = {'a': ('uniform', 0, 2), 'b': ('normal', 0, 2)}
+        priors = {'a': ('uniform', 0., 2.), 'b': ('normal', 0., 2.)}
         simple_model.set_priors(priors)
         sbi_priors = simple_model.get_sbi_priors()
         # Test that the returned priors are a list of length 2 (for a and b)
-        self.assertEqual(len(sbi_priors), 2)
+        self.assertEqual(len(sbi_priors.dists), 2)
         # Test that the priors are the expected type
-        self.assertIsInstance(sbi_priors[0], Uniform)
-        self.assertIsInstance(sbi_priors[1], Normal)
+        self.assertIsInstance(sbi_priors.dists[0], Uniform)
+        self.assertIsInstance(sbi_priors.dists[1], Normal)
         # Test that the priors have the expected parameters
-        self.assertEqual(sbi_priors[0].low, 0.)
-        self.assertEqual(sbi_priors[0].high, 2.)
-        self.assertEqual(sbi_priors[1].loc, 0.)
-        self.assertEqual(sbi_priors[1].scale, 2.)
+        self.assertEqual(sbi_priors.dists[0].low, 0.)
+        self.assertEqual(sbi_priors.dists[0].high, 2.)
+        self.assertEqual(sbi_priors.dists[1].loc, 0.)
+        self.assertEqual(sbi_priors.dists[1].scale, 2.)
 
+    def test_sample_prior(self):
+        """Test sampling from the prior distributions."""
+        simple_model = SimpleModel()
+        prior_info = {'a': ('uniform', 0., 2.), 'b': ('normal', 0., 2.)}
+        simple_model.set_priors(prior_info)
+        priors = simple_model.get_sbi_priors()
+        samples = priors.sample((5,))
+        # Test that the samples have the expected shape (5 samples of 2 parameters)
+        self.assertEqual(samples.shape, (5, 2))
 
     def test_get_sbi_simulator(self):
         """Test getting an sbi-compatible simulator function."""
         simple_model = SimpleModel()
-        simple_model.set_priors({'a': ('uniform', 0, 2), 'b': ('uniform', 0, 2)})
+        simple_model.set_priors({'a': ('uniform', 0., 2.), 'b': ('uniform', 0., 2.)})
         x = np.array([1, 2, 3])
         simple_model.set_input_data(x)
         sbi_simulator = simple_model.get_sbi_simulator()
