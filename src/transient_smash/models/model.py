@@ -36,7 +36,6 @@ class Model(ABC):
         # Check if input data has been set
         if not hasattr(self, 'x'):
             raise ValueError("Input data 'x' has not been set. Please use the 'set_input_data' method to set it before calling the simulator.")
-        
         return self.evaluate(self.x, *args)
 
     def set_input_data(self, x: np.ndarray):
@@ -103,9 +102,25 @@ class Model(ABC):
 
 
 class SimpleModel(Model):
-    def evaluate(self, x, a, b):
-        """A simple linear model: y = a * x + b."""
-        return a * x + b
+    def evaluate(self, x, params):
+        """
+        x: np.ndarray of shape (M,)
+        params: np.ndarray of shape (N, 2)
+        Returns: shape (N, M)
+        """
+        params = np.array(params)  # if you want to handle both np/torch uniformly
+    
+        if params.ndim == 1:  # single (a, b)
+            a, b = params
+            return a * x + b
+        
+        elif params.ndim == 2:  # multiple (a, b) pairs
+            a = params[:, 0][:, None]  # shape (N, 1)
+            b = params[:, 1][:, None]  # shape (N, 1)
+            return a * x[None, :] + b
+        
+        else:
+            raise ValueError(f"Unexpected params shape: {params.shape}")
     
 class SimpleModel_PlusNoise(Model):
 

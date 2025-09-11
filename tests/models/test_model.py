@@ -15,8 +15,8 @@ class TestSimpleModel(unittest.TestCase):
         """Test the simple model and its simulator function."""
         simple_model = SimpleModel()
         ### Test in the case of an integer input or an np array
-        self.assertEqual(simple_model.evaluate(x=1,a=1,b=1),2)
-        self.assertTrue((simple_model.evaluate(x=np.array([1,2,3]),a=1,b=1)==np.array([2,3,4])).all())
+        self.assertEqual(simple_model.evaluate(x=1,params=[1,1]),2)
+        self.assertTrue((simple_model.evaluate(x=np.array([1,2,3]),params=[1,1])==np.array([2,3,4])).all())
 
     def test_set_input_data(self):
         """Test setting input data for the model."""
@@ -28,14 +28,13 @@ class TestSimpleModel(unittest.TestCase):
     def test_simulator(self):
         """Test the simple model and its simulator function."""
         simple_model = SimpleModel()
-        a = 1
-        b = 1
+        params = torch.tensor([[1.0, 1.0]])
         ### Test that simulator raises an error if input data not set
         with self.assertRaises(ValueError):
-            simple_model.simulator(a,b)
+            simple_model.simulator(params)
         ### Test that simulator works correctly after setting input data
         simple_model.set_input_data(np.array([1,2,3]))
-        self.assertTrue((simple_model.simulator(a,b)==np.array([2,3,4])).all())
+        self.assertTrue((simple_model.simulator(params)==np.array([2,3,4])).all())
 
     def test_set_priors(self):
         from torch.distributions import Independent
@@ -74,26 +73,30 @@ class TestSimpleModel(unittest.TestCase):
         # Test that the returned priors are a list of length 2 (for a and b)
         self.assertEqual(len(sbi_priors), 2)
         # Test that the priors are the expected type
-        self.assertIsInstance(simple_model.priors[0], Independent)
-        self.assertIsInstance(simple_model.priors[1], Independent)
-        self.assertIsInstance(simple_model.priors[0].base_dist, Uniform)
-        self.assertIsInstance(simple_model.priors[1].base_dist, Normal)
+        self.assertIsInstance(sbi_priors[0], Independent)
+        self.assertIsInstance(sbi_priors[1], Independent)
+        self.assertIsInstance(sbi_priors[0].base_dist, Uniform)
+        self.assertIsInstance(sbi_priors[1].base_dist, Normal)
         # Test that the priors have the expected parameters
-        self.assertEqual(simple_model.priors[0].base_dist.low, 0.)
-        self.assertEqual(simple_model.priors[0].base_dist.high, 2.)
-        self.assertEqual(simple_model.priors[1].base_dist.loc, 0.)
-        self.assertEqual(simple_model.priors[1].base_dist.scale, 2.)
+        self.assertEqual(sbi_priors[0].base_dist.low, 0.)
+        self.assertEqual(sbi_priors[0].base_dist.high, 2.)
+        self.assertEqual(sbi_priors[1].base_dist.loc, 0.)
+        self.assertEqual(sbi_priors[1].base_dist.scale, 2.)
 
 
     def test_get_sbi_simulator(self):
         """Test getting an sbi-compatible simulator function."""
         simple_model = SimpleModel()
         simple_model.set_priors({'a': ('uniform', 0, 2), 'b': ('uniform', 0, 2)})
+        x = np.array([1, 2, 3])
+        simple_model.set_input_data(x)
         sbi_simulator = simple_model.get_sbi_simulator()
         # Test that the returned simulator is callable
         self.assertTrue(callable(sbi_simulator))
         # Test that the simulator produces expected output for given parameters
-    
+        y = sbi_simulator(torch.tensor([[1.0, 1.0]]))
+        self.assertIsInstance(y, torch.Tensor)
+
 class TestNoisySimpleModel(unittest.TestCase):
 
     def test_evaluate_with_noise(self):
