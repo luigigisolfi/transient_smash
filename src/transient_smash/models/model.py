@@ -1,30 +1,61 @@
 from abc import ABC, abstractmethod
 from scipy.stats import norm
 from sbi.utils import process_prior, process_simulator
+import numpy as np
 
 
 class Model(ABC):
 
     @abstractmethod
-    def simulator(self, x, *args):
-        """Generate simulated data given input data and model parameters.
+    def evaluate(self, x, *args):
+        """Evaluate the model given input data and model parameters.
         
         Args:
             x: Input data for the model (i.e. time points at which to simulate).
+            *args: Additional arguments for the evaluation containing model parameters.
+
+        Returns:
+            Output of the model.
+            
+        """
+        ...
+
+
+    def simulator(self, *args: np.ndarray) -> np.ndarray:
+        """Generate simulated data given the pre-set input data and model parameters.
+        
+        Args:
             *args: Additional arguments for the simulation containing model parameters.
 
         Returns:
             Simulated output of the model.
             
         """
-        ...
+        return self.evaluate(self.x, *args)
 
-    def get_sbi_simulator(self):
+    def set_input_data(self, x: np.ndarray):
+        """Set input data for the model.
+        
+        Args:
+            x: Input data for the model (i.e. time points at which to simulate).
+
+        Returns:
+            None
+            
+        """
+        self.x = x
+        return
+
+    def get_sbi_simulator(self) -> callable:
         """Get a simulator function compatible with the sbi package.
         """
-        pass
+        priors = self.get_sbi_priors()
+        is_numpy_simulator = True
+        sbi_simulator = process_simulator(self.simulator, priors, is_numpy_simulator)
+        return sbi_simulator
 
-    def set_priors(self, prior_info):
+
+    def set_priors(self, priors):
         """Set prior distributions for model parameters.
         
         Args:
@@ -34,7 +65,7 @@ class Model(ABC):
             None
             
         """
-        self.prior_info = prior_info
+        self.priors = priors
         return
     
     def get_sbi_priors(self):
@@ -44,7 +75,7 @@ class Model(ABC):
             PyTorch distribution-like priors for each parameter.
             
         """
-        pass
+        return process_prior(self.priors)
 
 
 class SimpleModel(Model):
