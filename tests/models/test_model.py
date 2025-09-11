@@ -118,6 +118,15 @@ class TestSimpleModelWithNoise(unittest.TestCase):
         expected = np.array([2, 3, 4]) + norm.rvs(loc=0, scale=1, size=3, random_state=42)
         self.assertTrue(np.allclose(result, expected))
 
+    def test_noise_generation(self):
+        """Test the noise generation method."""
+        model = SimpleModelWithNoise()
+        np.random.seed(42)
+        noise = model.noise(x=np.array([1, 2, 3]), noise_mean=0, noise_std=1)
+        expected = norm.rvs(loc=0, scale=1, size=3, random_state=42)
+        self.assertTrue(np.allclose(noise, expected))
+        self.assertEqual(len(noise), 3)  # Ensure noise length matches input length
+
 
 if __name__=='__main__':
     unittest.main()
