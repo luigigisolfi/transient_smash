@@ -79,7 +79,7 @@ class Model(ABC):
             elif dist.lower()=='normal':
                 sampled_priors.append(Normal(torch.tensor(priors[param][1]),torch.tensor(priors[param][2])))
             else:
-                raise(f"Invalid distribution selected: {dist}")
+                raise ValueError(f"Invalid distribution selected: {dist}")
         return sampled_priors
     
     def get_sbi_priors(self):
