@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
-from scipy.stats import norm
+from scipy.stats import norm,uniform
+import torch
+from torch.distributions import Normal,Uniform, Independent
 from sbi.utils import process_prior, process_simulator
 import numpy as np
 
@@ -31,6 +33,10 @@ class Model(ABC):
             Simulated output of the model.
             
         """
+        # Check if input data has been set
+        if not hasattr(self, 'x'):
+            raise ValueError("Input data 'x' has not been set. Please use the 'set_input_data' method to set it before calling the simulator.")
+        
         return self.evaluate(self.x, *args)
 
     def set_input_data(self, x: np.ndarray):
@@ -65,8 +71,22 @@ class Model(ABC):
             None
             
         """
-        self.priors = priors
-        return
+        num_dims = len(priors.keys())
+        sampled_priors = []
+        for param in priors.keys():
+            dist = priors[param][0]
+            if dist.lower()=='uniform':
+                
+                sampled_priors.append(
+                    Independent(
+                        Uniform(torch.tensor(priors[param][1]),torch.tensor(priors[param][2])), 0))
+            elif dist.lower()=='normal':
+                sampled_priors.append(
+                    Independent(
+                        Normal(torch.tensor(priors[param][1]),torch.tensor(priors[param][2])), 0))
+            else:
+                raise ValueError(f"Invalid distribution selected: {dist}")
+        self.priors = sampled_priors
     
     def get_sbi_priors(self):
         """Get prior distributions for model parameters.
@@ -75,17 +95,21 @@ class Model(ABC):
             PyTorch distribution-like priors for each parameter.
             
         """
-        return process_prior(self.priors)
+        if not hasattr(self,'priors'):
+            raise ValueError("Priors have not been set. Please use the 'set_priors' method to set them before calling this method.")
+        # return process_prior(self.priors)
+        return self.priors
+            
 
 
 class SimpleModel(Model):
-    def simulator(self, x, a, b):
+    def evaluate(self, x, a, b):
         """A simple linear model: y = a * x + b."""
         return a * x + b
     
 class SimpleModel_PlusNoise(Model):
 
-    def simulator(self, x, a, b, *args):
+    def evaluate(self, x, a, b, *args):
         """A simple linear model: y = a * x + b."""
         return a * x + b + self.noise(x, *args)
 
