@@ -97,15 +97,27 @@ class TestSimpleModel(unittest.TestCase):
         y = sbi_simulator(torch.tensor([[1.0, 1.0]]))
         self.assertIsInstance(y, torch.Tensor)
 
-class TestNoisySimpleModel(unittest.TestCase):
-
+class TestSimpleModelWithNoise(unittest.TestCase):
     def test_evaluate_with_noise(self):
-        """Test the simple model and its simulator function."""
-        simple_model = SimpleModel_PlusSimpleNoise()
+        """Test the simple model with noise and its simulator function."""
+        model = SimpleModelWithNoise()
+        # Test evaluate method with specific noise parameters
+        np.random.seed(42)  # For reproducibility
+        params = [1, 1, 0, 1]  # a=1, b=1, noise_mean=0, noise_std=1
+        result = model.evaluate(x=np.array([1, 2, 3]), params=params)
+        expected = np.array([2, 3, 4]) + norm.rvs(loc=0, scale=1, size=3, random_state=42)
+        self.assertTrue(np.allclose(result, expected))
 
-        ### Test in the case of an np array with a fixed random seed, 42
-        self.assertEqual(simple_model.evaluate(np.array([1]),1,1,0.2),2+norm.rvs(loc=0,scale=0.2,size=1,random_state=42))
-        # self.assertTrue((simple_model.simulator(x=np.array([1,2,3]),a=1,b=1)==np.array([2,3,4])).all())
+    def test_simulator_with_noise(self):
+        """Test the simulator method of the simple model with noise."""
+        model = SimpleModelWithNoise()
+        model.set_input_data(np.array([1, 2, 3]))
+        np.random.seed(42)  # For reproducibility
+        params = torch.tensor([[1.0, 1.0, 0.0, 1.0]])  # a=1, b=1, noise_mean=0, noise_std=1
+        result = model.simulator(params)
+        expected = np.array([2, 3, 4]) + norm.rvs(loc=0, scale=1, size=3, random_state=42)
+        self.assertTrue(np.allclose(result, expected))
+
 
 if __name__=='__main__':
     unittest.main()

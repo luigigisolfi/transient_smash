@@ -122,28 +122,30 @@ class SimpleModel(Model):
         else:
             raise ValueError(f"Unexpected params shape: {params.shape}")
     
-class SimpleModel_PlusNoise(Model):
+class SimpleModelWithNoise(Model):
 
-    def evaluate(self, x, a, b, *args):
+    def evaluate(self, x, params):
         """A simple linear model: y = a * x + b."""
-        return a * x + b + self.noise(x, *args)
+        params = np.array(params)  # if you want to handle both np/torch uniformly
+        if params.ndim == 1:  # single (a, b, noise_mean, noise_std)
+            a, b, noise_mean, noise_std = params
+        elif params.ndim == 2:  # multiple (a, b, noise_mean, noise_std) pairs
+            a = params[:, 0][:, None]  # shape (N, 1)
+            b = params[:, 1][:, None]  # shape (N, 1)
+            noise_mean = params[:, 2][:, None]  # shape (N, 1)
+            noise_std = params[:, 3][:, None]
+        else:
+            raise ValueError(f"Unexpected params shape: {params.shape}")
 
-    @abstractmethod
-    def noise(self, x, *args):
+        return a * x + b + self.noise(x, noise_mean, noise_std)
+
+    def noise(self, x, noise_mean, noise_std):
         """Simulate the noise to apply to the model.
         
         Args:
             x: Input data for the model.
-            *args: Additional arguments for the noise distribution.
-
-        Returns:
-            Simulated noise on the model.
-            
+            noise_mean: Mean of the noise distribution.
+            noise_std: Standard deviation of the noise distribution.
         """
-        ...
+        return norm.rvs(loc=noise_mean, scale=noise_std, size=len(x))
 
-class SimpleModel_PlusSimpleNoise(SimpleModel_PlusNoise):
-
-    def noise(self,x,sigma,seed=42):
-        """Add Gaussian noise to a dataset with defined variance, sigma"""
-        return norm.rvs(loc=0,scale=sigma,size=len(x),random_state=seed)
