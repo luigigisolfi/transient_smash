@@ -83,13 +83,13 @@ class Model(ABC):
 
 
 class SimpleModel(Model):
-    def simulator(self, x, a, b):
+    def evaluate(self, x, a, b):
         """A simple linear model: y = a * x + b."""
         return a * x + b
     
 class SimpleModel_PlusNoise(Model):
 
-    def simulator(self, x, a, b, *args):
+    def evaluate(self, x, a, b, *args):
         """A simple linear model: y = a * x + b."""
         return a * x + b + self.noise(x, *args)
 
