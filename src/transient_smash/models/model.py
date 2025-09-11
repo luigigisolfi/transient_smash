@@ -77,12 +77,10 @@ class Model(ABC):
             if dist.lower()=='uniform':
                 
                 sampled_priors.append(
-                    Independent(
-                        Uniform(torch.tensor(priors[param][1]),torch.tensor(priors[param][2])), 0))
+                        Uniform(torch.tensor(priors[param][1]),torch.tensor(priors[param][2])))
             elif dist.lower()=='normal':
                 sampled_priors.append(
-                    Independent(
-                        Normal(torch.tensor(priors[param][1]),torch.tensor(priors[param][2])), 0))
+                        Normal(torch.tensor(priors[param][1]),torch.tensor(priors[param][2])))
             else:
                 raise ValueError(f"Invalid distribution selected: {dist}")
         self.priors = sampled_priors

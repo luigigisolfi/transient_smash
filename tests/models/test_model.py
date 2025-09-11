@@ -37,7 +37,7 @@ class TestSimpleModel(unittest.TestCase):
         self.assertTrue((simple_model.simulator(params)==np.array([2,3,4])).all())
 
     def test_set_priors(self):
-        from torch.distributions import Independent
+        from torch.distributions import Uniform, Normal
         """Test setting prior distributions for model parameters."""
         simple_model = SimpleModel()
         # Test setting a prior which is not recognized raises an error
@@ -49,18 +49,16 @@ class TestSimpleModel(unittest.TestCase):
         # Test that the priors are a list of length 2 (for a and b)
         self.assertEqual(len(simple_model.priors), 2)
         # Test that the priors are the expected type
-        self.assertIsInstance(simple_model.priors[0], Independent)
-        self.assertIsInstance(simple_model.priors[1], Independent)
-        self.assertIsInstance(simple_model.priors[0].base_dist, Uniform)
-        self.assertIsInstance(simple_model.priors[1].base_dist, Normal)
+        self.assertIsInstance(simple_model.priors[0], Uniform)
+        self.assertIsInstance(simple_model.priors[1], Normal)
         # Test that the priors have the expected parameters
-        self.assertEqual(simple_model.priors[0].base_dist.low, 0.)
-        self.assertEqual(simple_model.priors[0].base_dist.high, 2.)
-        self.assertEqual(simple_model.priors[1].base_dist.loc, 0.)
-        self.assertEqual(simple_model.priors[1].base_dist.scale, 2.)
+        self.assertEqual(simple_model.priors[0].low, 0.)
+        self.assertEqual(simple_model.priors[0].high, 2.)
+        self.assertEqual(simple_model.priors[1].loc, 0.)
+        self.assertEqual(simple_model.priors[1].scale, 2.)
 
     def test_get_sbi_priors(self):
-        from torch.distributions import Independent
+        from torch.distributions import Uniform, Normal
         """Test getting sbi-compatible prior distributions."""
         simple_model = SimpleModel()
         # Test that getting priors without setting them raises an error
@@ -73,15 +71,13 @@ class TestSimpleModel(unittest.TestCase):
         # Test that the returned priors are a list of length 2 (for a and b)
         self.assertEqual(len(sbi_priors), 2)
         # Test that the priors are the expected type
-        self.assertIsInstance(sbi_priors[0], Independent)
-        self.assertIsInstance(sbi_priors[1], Independent)
-        self.assertIsInstance(sbi_priors[0].base_dist, Uniform)
-        self.assertIsInstance(sbi_priors[1].base_dist, Normal)
+        self.assertIsInstance(sbi_priors[0], Uniform)
+        self.assertIsInstance(sbi_priors[1], Normal)
         # Test that the priors have the expected parameters
-        self.assertEqual(sbi_priors[0].base_dist.low, 0.)
-        self.assertEqual(sbi_priors[0].base_dist.high, 2.)
-        self.assertEqual(sbi_priors[1].base_dist.loc, 0.)
-        self.assertEqual(sbi_priors[1].base_dist.scale, 2.)
+        self.assertEqual(sbi_priors[0].low, 0.)
+        self.assertEqual(sbi_priors[0].high, 2.)
+        self.assertEqual(sbi_priors[1].loc, 0.)
+        self.assertEqual(sbi_priors[1].scale, 2.)
 
 
     def test_get_sbi_simulator(self):
