@@ -73,7 +73,7 @@ class Model(ABC):
         num_dims = len(priors.keys())
         sampled_priors = []
         for param in priors.keys():
-            dist = param[0]
+            dist = priors[param][0]
             if dist.lower()=='uniform':
                 sampled_priors.append(Uniform(torch.tensor(priors[param][1]),torch.tensor(priors[param][2])))
             elif dist.lower()=='normal':
