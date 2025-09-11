@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from scipy.stats import norm
+from sbi.utils import process_prior, process_simulator
 
 
 class Model(ABC):
