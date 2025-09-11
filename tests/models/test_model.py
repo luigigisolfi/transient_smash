@@ -36,6 +36,21 @@ class TestSimpleModel(unittest.TestCase):
         ### Test that simulator works correctly after setting input data
         simple_model.set_input_data(np.array([1,2,3]))
         self.assertTrue((simple_model.simulator(a,b)==np.array([2,3,4])).all())
+
+    def test_get_sbi_simulator(self):
+        """Test getting an sbi-compatible simulator function."""
+        simple_model = SimpleModel()
+        simple_model.set_priors({'a': ('uniform', 0, 2), 'b': ('uniform', 0, 2)})
+        sbi_simulator = simple_model.get_sbi_simulator()
+        # Test that the returned simulator is callable
+        self.assertTrue(callable(sbi_simulator))
+        # Test that the simulator produces expected output for given parameters
+        x_data = np.array([1, 2, 3])
+        simple_model.set_input_data(x_data)
+        params = np.array([[1, 1], [0.5, 0.5]])
+        outputs = sbi_simulator(params)
+        expected_outputs = np.array([[2, 3, 4], [1, 1.5, 2]])
+        self.assertTrue((outputs == expected_outputs).all())
     
 class TestNoisySimpleModel(unittest.TestCase):
 
