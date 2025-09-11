@@ -50,8 +50,8 @@ class TestSimpleModel(unittest.TestCase):
         # Test that the priors are a list of length 2 (for a and b)
         self.assertEqual(len(simple_model.priors), 2)
         # Test that setting priors works correctly
-        self.assertEqual(simple_model.priors['a'], Uniform(0, 2))
-        self.assertEqual(simple_model.priors['b'], Normal(0, 2))
+        self.assertEqual(simple_model.priors[0], Uniform(0., 2.))
+        self.assertEqual(simple_model.priors[1], Normal(0., 2.))
 
 
     def test_get_sbi_priors(self):
@@ -68,8 +68,8 @@ class TestSimpleModel(unittest.TestCase):
         # Test that the returned priors are a list of length 2 (for a and b)
         self.assertEqual(len(sbi_priors), 2)
         # Test that the priors are the expected type and values
-        self.assertEqual(sbi_priors[0], Uniform(0, 2))
-        self.assertEqual(sbi_priors[1], Normal(0, 2))
+        self.assertEqual(sbi_priors[0], Uniform(0., 2.))
+        self.assertEqual(sbi_priors[1], Normal(0., 2.))
 
 
     def test_get_sbi_simulator(self):
