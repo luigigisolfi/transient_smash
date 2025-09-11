@@ -6,10 +6,10 @@ class Model(ABC):
 
     @abstractmethod
     def simulator(self, x, *args):
-        """Simulate the model at the given input x.
+        """Generate simulated data given input data and model parameters.
         
         Args:
-            x: Input data for the model.
+            x: Input data for the model (i.e. time points at which to simulate).
             *args: Additional arguments for the simulation containing model parameters.
 
         Returns:
@@ -17,6 +17,34 @@ class Model(ABC):
             
         """
         ...
+
+    def get_sbi_simulator(self):
+        """Get a simulator function compatible with the sbi package.
+        """
+        pass
+
+    def set_priors(self, prior_info):
+        """Set prior distributions for model parameters.
+        
+        Args:
+            prior_info: A dictionary containing prior distribution information for each parameter.
+
+        Returns:
+            None
+            
+        """
+        self.prior_info = prior_info
+        return
+    
+    def get_sbi_priors(self):
+        """Get prior distributions for model parameters.
+        
+        Returns:
+            PyTorch distribution-like priors for each parameter.
+            
+        """
+        pass
+
 
 class SimpleModel(Model):
     def simulator(self, x, a, b):
