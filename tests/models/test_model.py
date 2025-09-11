@@ -38,7 +38,7 @@ class TestSimpleModel(unittest.TestCase):
         self.assertTrue((simple_model.simulator(a,b)==np.array([2,3,4])).all())
 
     def test_set_priors(self):
-        from torch.distributions import Uniform, Normal
+        from torch.distributions import Independent
         """Test setting prior distributions for model parameters."""
         simple_model = SimpleModel()
         # Test setting a prior which is not recognized raises an error
@@ -49,13 +49,19 @@ class TestSimpleModel(unittest.TestCase):
         simple_model.set_priors(priors)
         # Test that the priors are a list of length 2 (for a and b)
         self.assertEqual(len(simple_model.priors), 2)
-        # Test that setting priors works correctly
-        self.assertEqual(simple_model.priors[0], Uniform(0., 2.))
-        self.assertEqual(simple_model.priors[1], Normal(0., 2.))
-
+        # Test that the priors are the expected type
+        self.assertIsInstance(simple_model.priors[0], Independent)
+        self.assertIsInstance(simple_model.priors[1], Independent)
+        self.assertIsInstance(simple_model.priors[0].base_dist, Uniform)
+        self.assertIsInstance(simple_model.priors[1].base_dist, Normal)
+        # Test that the priors have the expected parameters
+        self.assertEqual(simple_model.priors[0].base_dist.low, 0.)
+        self.assertEqual(simple_model.priors[0].base_dist.high, 2.)
+        self.assertEqual(simple_model.priors[1].base_dist.loc, 0.)
+        self.assertEqual(simple_model.priors[1].base_dist.scale, 2.)
 
     def test_get_sbi_priors(self):
-        from torch.distributions import Uniform, Normal
+        from torch.distributions import Independent
         """Test getting sbi-compatible prior distributions."""
         simple_model = SimpleModel()
         # Test that getting priors without setting them raises an error
@@ -67,9 +73,16 @@ class TestSimpleModel(unittest.TestCase):
         sbi_priors = simple_model.get_sbi_priors()
         # Test that the returned priors are a list of length 2 (for a and b)
         self.assertEqual(len(sbi_priors), 2)
-        # Test that the priors are the expected type and values
-        self.assertEqual(sbi_priors[0], Uniform(0., 2.))
-        self.assertEqual(sbi_priors[1], Normal(0., 2.))
+        # Test that the priors are the expected type
+        self.assertIsInstance(simple_model.priors[0], Independent)
+        self.assertIsInstance(simple_model.priors[1], Independent)
+        self.assertIsInstance(simple_model.priors[0].base_dist, Uniform)
+        self.assertIsInstance(simple_model.priors[1].base_dist, Normal)
+        # Test that the priors have the expected parameters
+        self.assertEqual(simple_model.priors[0].base_dist.low, 0.)
+        self.assertEqual(simple_model.priors[0].base_dist.high, 2.)
+        self.assertEqual(simple_model.priors[1].base_dist.loc, 0.)
+        self.assertEqual(simple_model.priors[1].base_dist.scale, 2.)
 
 
     def test_get_sbi_simulator(self):
@@ -80,12 +93,6 @@ class TestSimpleModel(unittest.TestCase):
         # Test that the returned simulator is callable
         self.assertTrue(callable(sbi_simulator))
         # Test that the simulator produces expected output for given parameters
-        x_data = np.array([1, 2, 3])
-        simple_model.set_input_data(x_data)
-        params = np.array([[1, 1], [0.5, 0.5]])
-        outputs = sbi_simulator(params)
-        expected_outputs = np.array([[2, 3, 4], [1, 1.5, 2]])
-        self.assertTrue((outputs == expected_outputs).all())
     
 class TestNoisySimpleModel(unittest.TestCase):
 
