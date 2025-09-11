@@ -31,6 +31,10 @@ class Model(ABC):
             Simulated output of the model.
             
         """
+        # Check if input data has been set
+        if not hasattr(self, 'x'):
+            raise ValueError("Input data 'x' has not been set. Please use the 'set_input_data' method to set it before calling the simulator.")
+        
         return self.evaluate(self.x, *args)
 
     def set_input_data(self, x: np.ndarray):
@@ -82,13 +86,13 @@ class Model(ABC):
 
 
 class SimpleModel(Model):
-    def simulator(self, x, a, b):
+    def evaluate(self, x, a, b):
         """A simple linear model: y = a * x + b."""
         return a * x + b
     
 class SimpleModel_PlusNoise(Model):
 
-    def simulator(self, x, a, b, *args):
+    def evaluate(self, x, a, b, *args):
         """A simple linear model: y = a * x + b."""
         return a * x + b + self.noise(x, *args)
 
