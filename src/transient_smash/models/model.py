@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from scipy.stats import norm
+from scipy.stats import norm,uniform
+from torch.distributions import Normal,Uniform
 from sbi.utils import process_prior, process_simulator
 import numpy as np
 
@@ -69,8 +70,17 @@ class Model(ABC):
             None
             
         """
-        self.priors = priors
-        return
+        num_dims = len(priors.keys())
+        sampled_priors = []
+        for param in priors.keys():
+            dist = param[0]
+            if dist.lower()=='uniform':
+                sampled_priors.append(Uniform(torch.tensor(priors[param][1]),torch.tensor(priors[param][2])))
+            elif dist.lower()=='normal':
+                sampled_priors.append(Normal(torch.tensor(priors[param][1]),torch.tensor(priors[param][2])))
+            else:
+                raise(f"Invalid distribution selected: {dist}")
+        return sampled_priors
     
     def get_sbi_priors(self):
         """Get prior distributions for model parameters.
