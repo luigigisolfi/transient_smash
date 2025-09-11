@@ -127,6 +127,38 @@ class TestSimpleModelWithNoise(unittest.TestCase):
         self.assertTrue(np.allclose(noise, expected))
         self.assertEqual(len(noise), 3)  # Ensure noise length matches input length
 
+class TestSinusoidalModelWithNoise(unittest.TestCase):
+    def test_evaluate_sinusoidal(self):
+        """Test the sinusoidal model with noise and its simulator function."""
+        model = SinusoidalModelWithNoise()
+        # Test evaluate method with specific noise parameters
+        np.random.seed(42)  # For reproducibility
+        params = [1, 2, 0, 0, 0, 1]  # amplitude=1, frequency=2, phase=0, offset=0, noise_mean=0, noise_std=1
+        result = model.evaluate(x=np.array([0, 1, 2]), params=params)
+        expected = 1 * np.sin(2 * np.pi * 2 * np.array([0, 1, 2]) + 0) + 0
+        expected += norm.rvs(loc=0, scale=1, size=3, random_state=42)
+        self.assertTrue(np.allclose(result, expected))
+
+    def test_simulator_sinusoidal(self):
+        """Test the simulator method of the sinusoidal model with noise."""
+        model = SinusoidalModelWithNoise()
+        model.set_input_data(np.array([0, 1, 2]))
+        np.random.seed(42)  # For reproducibility
+        params = torch.tensor([[1.0, 2.0, 0.0, 0.0, 0.0, 1.0]])  # amplitude=1, frequency=2, phase=0, offset=0, noise_mean=0, noise_std=1
+        result = model.simulator(params)
+        expected = 1 * np.sin(2 * np.pi * 2 * np.array([0, 1, 2]) + 0) + 0
+        expected += norm.rvs(loc=0, scale=1, size=3, random_state=42)
+        self.assertTrue(np.allclose(result, expected))
+
+    def test_noise_generation_sinusoidal(self):
+        """Test the noise generation method in the sinusoidal model."""
+        model = SinusoidalModelWithNoise()
+        np.random.seed(42)
+        noise = model.noise(x=np.array([0, 1, 2]), noise_mean=0, noise_std=1)
+        expected = norm.rvs(loc=0, scale=1, size=3, random_state=42)
+        self.assertTrue(np.allclose(noise, expected))
+        self.assertEqual(len(noise), 3)  # Ensure noise length matches input length
+
 
 if __name__=='__main__':
     unittest.main()

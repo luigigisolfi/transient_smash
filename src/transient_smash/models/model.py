@@ -149,3 +149,31 @@ class SimpleModelWithNoise(Model):
         """
         return norm.rvs(loc=noise_mean, scale=noise_std, size=len(x))
 
+class SinusoidalModelWithNoise(Model):
+    
+    def evaluate(self, x, params):
+        """A sinusoidal model: y = A * sin(2 * pi * f * x + phi) + b."""
+        params = np.array(params)  # if you want to handle both np/torch uniformly
+        if params.ndim == 1:  # single (A, f, phi, b, noise_mean, noise_std)
+            A, f, phi, b, noise_mean, noise_std = params
+        elif params.ndim == 2:  # multiple (A, f, phi, b, noise_mean, noise_std) pairs
+            A = params[:, 0][:, None]  # shape (N, 1)
+            f = params[:, 1][:, None]  # shape (N, 1)
+            phi = params[:, 2][:, None]  # shape (N, 1)
+            b = params[:, 3][:, None]  # shape (N, 1)
+            noise_mean = params[:, 4][:, None]  # shape (N, 1)
+            noise_std = params[:, 5][:, None]
+        else:
+            raise ValueError(f"Unexpected params shape: {params.shape}")
+
+        return A * np.sin(2 * np.pi * f * x + phi) + b + self.noise(x, noise_mean, noise_std)
+
+    def noise(self, x, noise_mean, noise_std):
+        """Simulate the noise to apply to the model.
+        
+        Args:
+            x: Input data for the model.
+            noise_mean: Mean of the noise distribution.
+            noise_std: Standard deviation of the noise distribution.
+        """
+        return norm.rvs(loc=noise_mean, scale=noise_std, size=len(x))
