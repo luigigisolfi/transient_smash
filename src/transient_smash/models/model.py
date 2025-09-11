@@ -31,6 +31,16 @@ class SimpleModel_PlusNoise(Model):
 
     @abstractmethod
     def noise(self, x, *args):
+        """Simulate the noise to apply to the model.
+        
+        Args:
+            x: Input data for the model.
+            *args: Additional arguments for the noise distribution.
+
+        Returns:
+            Simulated noise on the model.
+            
+        """
         ...
 
 class SimpleModel_PlusSimpleNoise(SimpleModel_PlusNoise):

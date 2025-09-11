@@ -19,7 +19,7 @@ class TestNoisySimpleModel(unittest.TestCase):
         """Test the simple model and its simulator function."""
         simple_model = SimpleModel_PlusSimpleNoise()
 
-        ### Test in the case of an integer input or an np array
+        ### Test in the case of an np array with a fixed random seed, 42
         self.assertEqual(simple_model.simulator(np.array([1]),1,1,0.2),2+norm.rvs(loc=0,scale=0.2,size=1,random_state=42))
         # self.assertTrue((simple_model.simulator(x=np.array([1,2,3]),a=1,b=1)==np.array([2,3,4])).all())
 
