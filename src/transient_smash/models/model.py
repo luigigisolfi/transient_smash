@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
 from scipy.stats import norm,uniform
 import torch
-from torch.distributions import Normal,Uniform, Independent
 from sbi.utils import process_prior, process_simulator
 import numpy as np
-
+from torch.distributions import Normal, Uniform, Exponential, Independent
+from sbi.utils import MultipleIndependent
+import torch
 
 class Model(ABC):
 
@@ -61,33 +62,112 @@ class Model(ABC):
         return sbi_simulator
 
 
-    def set_priors(self, priors):
+    def set_priors_emma(self, priors: dict) -> None:
         """Set prior distributions for model parameters.
-        
         Args:
-            prior_info: A dictionary containing prior distribution information for each parameter.
-
+            priors: A dictionary containing prior distribution information
+            for each parameter.
         Returns:
             None
-            
         """
-        num_dims = len(priors.keys())
-        sampled_priors = []
-        for param in priors.keys():
+        priors_list = []
+        for param in priors:
             dist = priors[param][0]
             if dist.lower()=='uniform':
-                
-                sampled_priors.append(
-                    Independent(
-                        Uniform(torch.tensor(priors[param][1]),torch.tensor(priors[param][2])), 0))
+                priors_list.append(
+                    Uniform(torch.tensor([priors[param][1]]),
+                            torch.tensor([priors[param][2]])))
             elif dist.lower()=='normal':
-                sampled_priors.append(
-                    Independent(
-                        Normal(torch.tensor(priors[param][1]),torch.tensor(priors[param][2])), 0))
+                priors_list.append(
+                    Normal(torch.tensor([priors[param][1]]),
+                           torch.tensor([priors[param][2]])))
             else:
-                raise ValueError(f"Invalid distribution selected: {dist}")
-        self.priors = sampled_priors
-    
+                err_str = f"Invalid distribution selected: {dist}. " \
+                          f"Please choose either 'uniform' or 'normal'."
+                raise Exception(err_str)
+        self.priors = MultipleIndependent(priors_list)
+
+    def set_priors(self, priors: dict) -> None:
+        """Set prior distributions for model parameters.
+
+        Creates distributions compatible with SBI's MultipleIndependent.
+        """
+        import torch
+        from torch.distributions import MultivariateNormal, Exponential
+        from sbi.utils import MultipleIndependent, BoxUniform
+
+        sampled_priors = []
+
+        for param_name, spec in priors.items():
+            print(f"Processing parameter: {param_name}")
+
+            # Handle both single specs and lists of specs
+            if isinstance(spec[0], str):
+                specs_to_process = [spec]
+            else:
+                specs_to_process = spec
+
+            for i, single_spec in enumerate(specs_to_process):
+                dist_type = single_spec[0].lower()
+                print(f"  Creating {dist_type} distribution {i+1}")
+
+                if dist_type == "uniform":
+                    n, low, high = single_spec[1], single_spec[2], single_spec[3]
+                    print(f'    {n}D uniform prior, range [{low}, {high}]')
+
+                    # BoxUniform handles multi-dimensional uniform correctly
+                    low_tensor = torch.full((n,), low, dtype=torch.float32)
+                    high_tensor = torch.full((n,), high, dtype=torch.float32)
+
+                    dist = BoxUniform(low_tensor, high_tensor)
+                    print(f"    Created BoxUniform with event_shape: {dist.event_shape}, batch_shape: {dist.batch_shape}")
+                    sampled_priors.append(dist)
+
+                elif dist_type == "normal":
+                    n, mean, std = single_spec[1], single_spec[2], single_spec[3]
+                    print(f'    {n}D normal prior, mean={mean}, std={std}')
+
+                    # Always use MultivariateNormal, even for 1D case
+                    mean_tensor = torch.full((n,), mean, dtype=torch.float32)
+                    cov_matrix = torch.eye(n, dtype=torch.float32) * (std ** 2)
+                    dist = MultivariateNormal(mean_tensor, cov_matrix)
+
+                    print(f"    Created MultivariateNormal with event_shape: {dist.event_shape}, batch_shape: {dist.batch_shape}")
+                    sampled_priors.append(dist)
+
+                elif dist_type == "exponential":
+                    rate = single_spec[1]
+                    print(f'Exponential prior, rate={rate}')
+
+                    if rate <= 0:
+                        raise ValueError("Exponential rate must be > 0")
+
+                    # Use Exponential with tensor rate for any dimensionality
+                    rate_tensor = torch.full((1,), rate, dtype=torch.float32)
+                    dist = Exponential(rate_tensor)
+
+                    print(f"    Created Exponential with event_shape: {dist.event_shape}, batch_shape: {dist.batch_shape}")
+                    sampled_priors.append(dist)
+
+                else:
+                    print(f"ERROR: Invalid distribution type: {dist_type}")
+                    raise ValueError(f"Invalid distribution type: {dist_type}")
+
+        print(f"Created {len(sampled_priors)} prior distributions")
+
+        # Debug: Check all batch shapes before creating MultipleIndependent
+        for i, dist in enumerate(sampled_priors):
+            print(f"Distribution {i}: batch_shape={dist.batch_shape}, event_shape={dist.event_shape}")
+            if dist.batch_shape not in (torch.Size([]), torch.Size([1])):
+                raise ValueError(f"Distribution {i} has invalid batch_shape: {dist.batch_shape}. Must be () or (1,)")
+
+        total_dims = sum(dist.event_shape.numel() for dist in sampled_priors)
+        print(f"Total parameter dimensions: {total_dims}")
+
+        self.priors = MultipleIndependent(sampled_priors)
+        print(f"Successfully created MultipleIndependent with {len(self.priors.dists)} distributions")
+
+
     def get_sbi_priors(self):
         """Get prior distributions for model parameters.
         

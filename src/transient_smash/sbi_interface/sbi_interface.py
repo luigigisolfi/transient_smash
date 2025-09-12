@@ -22,7 +22,7 @@ class SBIInterface(ABC):
     @abstractmethod
     def create_inference_object(
         self,
-        prior: list(torch.distributions.Distribution)| None,
+        prior: list(torch.distributions.Distribution) | None = None,
     ) -> Inference:
         """
         Create an SBI inference object.
@@ -117,7 +117,7 @@ class NLESBI(SBIInterface):
     """
 
     def create_inference_object(
-        self, prior: torch.distributions.Distribution | None = None
+        self, prior: list(torch.distributions.Distribution) | None = None
     ) -> Inference:
         """
         Create an SBI inference object.

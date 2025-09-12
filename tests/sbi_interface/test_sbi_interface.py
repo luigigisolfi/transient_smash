@@ -1,8 +1,8 @@
-from transient_smash.sbi_interface.sbi_interface import NLESBI, NPESBI
+from transient_smash.models.model import *
 import unittest
-from sbi.inference import NLE, NPE, NRE
+from transient_smash.sbi_interface.sbi_interface import NLESBI, NPESBI
 import torch
-from sbi.utils import BoxUniform
+from sbi.inference import NLE, NPE, NRE
 
 class TestNLESBI(unittest.TestCase):
     """
@@ -12,17 +12,23 @@ class TestNLESBI(unittest.TestCase):
     simulations, drawing posterior samples, and visualizing results.
     """
 
-    def test_create_inference_object(
+    def test_create_inference_object(self):
+        simple_model = SimpleModel()
 
-            self,
-            prior  = None # example prior
-    ):
+        # Set priors and get them
+        priors = {
+            'a': ("uniform", 0.0, 2.0),        # 1D uniform for velocity
+            'b': ("normal", 0.0, 2.0),         # 2D normal for position
+        }
 
-        nre_sbi = NLESBI()
-        inference_object = nre_sbi.create_inference_object(prior)
+        simple_model.set_priors(priors)
+        sbi_priors = simple_model.get_sbi_priors()
 
-        if prior is not None:
-            self.assertIsInstance(prior, torch.distributions.Distribution)
+        # Create NLESBI isntantiation
+        nle_sbi = NLESBI()
+
+        # Create inference object
+        inference_object = nle_sbi.create_inference_object(sbi_priors)
 
         self.assertIsInstance(inference_object, NLE)
 
