@@ -61,11 +61,11 @@ class Model(ABC):
         return process_simulator(self.simulator, priors, is_numpy_simulator)
 
 
-    def set_priors(self, priors) -> None:
+    def set_priors(self, priors: dict) -> None:
         """Set prior distributions for model parameters.
 
         Args:
-            prior_info: A dictionary containing prior distribution information 
+            priors: A dictionary containing prior distribution information 
             for each parameter.
 
         Returns:
