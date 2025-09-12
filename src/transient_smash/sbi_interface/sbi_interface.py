@@ -68,9 +68,9 @@ class SBIInterface(ABC):
     @abstractmethod
     def sample_distribution(
         self,
-        distribution: Posterior,
+        distribution: torch.distributions.Distribution,
         theta: Tensor,
-        x: Tensor,
+        x: Tensor
     ) -> Tensor:
         """
         Sample from the posterior distribution.
@@ -92,7 +92,7 @@ class SBIInterface(ABC):
         """
 
     @abstractmethod
-    def plot_posterior(self, distribution_theta: Tensor) -> None:
+    def plot_posterior(self, distribution_theta: Tensor, labels = None) -> None:
         """
         Plot posterior samples.
 
@@ -175,9 +175,9 @@ class NLESBI(SBIInterface):
 
     def sample_distribution(
         self,
-        distribution: Posterior,
+        distribution: torch.distributions.Distribution,
         theta: Tensor,
-        _x: Tensor,
+        x : Tensor,
     ) -> Tensor:
         """
         Sample from the posterior distribution.
@@ -198,10 +198,10 @@ class NLESBI(SBIInterface):
 
         """
         theta_shape = theta.shape  # e.g., torch.Size([2000, 3])
-        distribution_theta: Tensor = distribution.sample(sample_shape=theta_shape)
+        distribution_theta = distribution.sample(theta_shape, x)
         return distribution_theta
 
-    def plot_posterior(self, distribution_theta: Tensor) -> None:
+    def plot_posterior(self, distribution_theta: Tensor, labels = None) -> None:
         """
         Visualize posterior samples with a pairplot.
 
@@ -215,7 +215,7 @@ class NLESBI(SBIInterface):
         None
 
         """
-        pairplot(distribution_theta)
+        pairplot(distribution_theta, labels = labels)
 
 
 class NPESBI(SBIInterface):
@@ -284,7 +284,7 @@ class NPESBI(SBIInterface):
 
     def sample_distribution(
         self,
-        distribution: Posterior,
+        distribution: torch.distributions.Distribution,
         theta: Tensor,
         _x: Tensor,
     ) -> Tensor:
@@ -310,7 +310,7 @@ class NPESBI(SBIInterface):
         distribution_theta: Tensor = distribution.sample(sample_shape=theta_shape)
         return distribution_theta
 
-    def plot_posterior(self, distribution_theta: Tensor) -> None:
+    def plot_posterior(self, distribution_theta: Tensor, labels = None) -> None:
         """
         Visualize posterior samples with a pairplot.
 
@@ -324,4 +324,4 @@ class NPESBI(SBIInterface):
         None
 
         """
-        pairplot(distribution_theta)
+        pairplot(distribution_theta, labels)
