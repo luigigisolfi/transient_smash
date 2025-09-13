@@ -16,32 +16,21 @@
 [license-badge]:            https://img.shields.io/badge/License-BSD_3--Clause-blue.svg
 <!-- prettier-ignore-end -->
 
-A cookiecutter package with UCL ARC recommendations.
+`transient_smash` is a Python package for detecting the presence of transient astrophysical events in time-series data.
+It uses a Bayesian model comparison approach, computing the evidence ratio (Bayes factor) for generative models for the time-series data,
+using simulated based inference algorithms.
 
-This project is developed in collaboration with the
-[Centre for Advanced Research Computing](https://ucl.ac.uk/arc), University
-College London.
+This project was developed as part of the [ASTRODAT25 workshop](https://bronreichardtchu.github.io/ASTRODAT/).
 
 ## About
 
 ### Project Team
 
-Hulk Smashers ([hulk.smashers@ucl.ac.uk](mailto:hulk.smashers@ucl.ac.uk))
-
-<!-- TODO: how do we have an array of collaborators ? -->
-
-### Research Software Engineering Contact
-
-Centre for Advanced Research Computing, University College London
-([arc.collaborations@ucl.ac.uk](mailto:arc.collaborations@ucl.ac.uk))
-
-## Built With
-
-<!-- TODO: can cookiecutter make a list of frameworks? -->
-
-- [Framework 1](https://something.com)
-- [Framework 2](https://something.com)
-- [Framework 3](https://something.com)
+- Emma Godden ([emmagodden123](https://github.com/emmagodden123))
+- Jack Davey ([JJD333](https://github.com/JJD333))
+- Giulia Borghetto ([gborghetto](https://github.com/gborghetto))
+- Luigi Gisolfi ([luigigisolfi](https://github.com/luigigisolfi))
+- Matt Graham ([matt-graham](https://github.com/matt-graham))
 
 ## Getting Started
 
