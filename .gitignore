@@ -162,3 +162,8 @@ cython_debug/
 # package version
 _version.py
 .idea
+tests/models/sbi-logs
+
+# SBI Logs
+*/sbi-logs
+sbi_logs/
