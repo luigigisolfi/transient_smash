@@ -166,3 +166,4 @@ tests/models/sbi-logs
 
 # SBI Logs
 */sbi-logs
+sbi_logs/

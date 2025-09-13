@@ -6,6 +6,8 @@ from sbi.utils import MultipleIndependent, process_simulator
 from scipy.stats import norm
 from torch.distributions import Normal, Uniform
 
+from .exceptions import ModelError
+
 
 class Model(ABC):
     """Abstract base class for models."""
@@ -42,7 +44,7 @@ class Model(ABC):
                 "Input data 'x' has not been set. Please use the "
                 "'set_input_data' method to set it before calling the simulator."
             )
-            raise Exception(err_str)
+            raise ModelError(err_str)
         return self.evaluate(self.x, *args)
 
     def set_input_data(self, x: np.ndarray) -> None:
@@ -97,7 +99,7 @@ class Model(ABC):
                     f"Invalid distribution selected: {dist}. "
                     f"Please choose either 'uniform' or 'normal'."
                 )
-                raise Exception(err_str)
+                raise ModelError(err_str)
         self.priors = MultipleIndependent(priors_list)
 
     def get_sbi_priors(self) -> MultipleIndependent:
@@ -113,7 +115,7 @@ class Model(ABC):
                 "Priors have not been set. Please use the "
                 "'set_priors' method to set them before calling this method."
             )
-            raise Exception(err_str)
+            raise ModelError(err_str)
 
         return self.priors
 
@@ -145,7 +147,7 @@ class SimpleModel(Model):
             return a * x[None, :] + b
 
         err_str = f"Unexpected params shape: {params.shape}"
-        raise Exception(err_str)
+        raise ModelError(err_str)
 
 
 class SimpleModelWithNoise(Model):
@@ -173,7 +175,7 @@ class SimpleModelWithNoise(Model):
             noise_std = params[:, 3][:, None]
         else:
             err_str = f"Unexpected params shape: {params.shape}"
-            raise Exception(err_str)
+            raise ModelError(err_str)
 
         return a * x + b + self.noise(x, noise_mean, noise_std)
 
@@ -222,7 +224,7 @@ class SinusoidalModelWithNoise(Model):
             noise_std = params[:, 5][:, None]
         else:
             err_str = f"Unexpected params shape: {params.shape}"
-            raise Exception(err_str)
+            raise ModelError(err_str)
 
         return (
             a * np.sin(2 * np.pi * f * x + phi)

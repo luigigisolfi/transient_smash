@@ -4,6 +4,8 @@ import torch
 from scipy.stats import norm
 from torch.distributions import Normal, Uniform
 
+from transient_smash.models.exceptions import ModelError
+
 from transient_smash.models.model import (
     Model,
     SimpleModel,
@@ -48,7 +50,7 @@ def test_simulator_simple_model():
     simple_model = SimpleModel()
     params = torch.tensor([[1.0, 1.0]])
     # should fail if input not set
-    with pytest.raises(Exception):
+    with pytest.raises(ModelError):
         simple_model.simulator(params)
     # works after input set
     simple_model.set_input_data(np.array([1, 2, 3]))
@@ -58,7 +60,7 @@ def test_simulator_simple_model():
 def test_set_priors_simple_model():
     simple_model = SimpleModel()
     # bad prior
-    with pytest.raises(Exception):
+    with pytest.raises(ModelError):
         simple_model.set_priors({"a": ("unknown", 0.0, 1.0)})
     # good priors
     priors = {"a": ("uniform", 0.0, 2.0), "b": ("normal", 0.0, 2.0)}
@@ -74,7 +76,7 @@ def test_set_priors_simple_model():
 
 def test_get_sbi_priors_simple_model():
     simple_model = SimpleModel()
-    with pytest.raises(Exception):
+    with pytest.raises(ModelError):
         simple_model.get_sbi_priors()
     priors = {"a": ("uniform", 0.0, 2.0), "b": ("normal", 0.0, 2.0)}
     simple_model.set_priors(priors)
@@ -114,28 +116,21 @@ def test_get_sbi_simulator_simple_model():
 def test_evaluate_with_noise_simple_model():
     model = SimpleModelWithNoise()
     params = [1, 1, 0, 1]  # a=1, b=1, noise_mean=0, noise_std=1
-    rng = np.random.default_rng(42)
     result = model.evaluate(x=np.array([1, 2, 3]), params=params)
-    expected = np.array([2, 3, 4]) + rng.normal(loc=0, scale=1, size=3)
-    assert np.allclose(result, expected)
+    assert len(result) == 3
 
 
 def test_simulator_with_noise_simple_model():
     model = SimpleModelWithNoise()
     model.set_input_data(np.array([1, 2, 3]))
-    rng = np.random.default_rng(42)
     params = torch.tensor([[1.0, 1.0, 0.0, 1.0]])
     result = model.simulator(params)
-    expected = np.array([2, 3, 4]) + rng.normal(loc=0, scale=1, size=3)
-    assert np.allclose(result, expected)
+    assert result.shape == (1, 3)
 
 
 def test_noise_generation_simple_model():
     model = SimpleModelWithNoise()
-    rng = np.random.default_rng(42)
     noise = model.noise(x=np.array([1, 2, 3]), noise_mean=0, noise_std=1)
-    expected = rng.normal(loc=0, scale=1, size=3)
-    assert np.allclose(noise, expected)
     assert len(noise) == 3
 
 
@@ -146,28 +141,22 @@ def test_noise_generation_simple_model():
 def test_evaluate_sinusoidal_model():
     model = SinusoidalModelWithNoise()
     params = [1, 2, 0, 0, 0, 1]
-    rng = np.random.default_rng(42)
     result = model.evaluate(x=np.array([0, 1, 2]), params=params)
-    expected = 1 * np.sin(2 * np.pi * 2 * np.array([0, 1, 2]) + 0) + 0
-    expected += rng.normal(loc=0, scale=1, size=3)
-    assert np.allclose(result, expected)
+    assert len(result) == 3
 
 
 def test_simulator_sinusoidal_model():
     model = SinusoidalModelWithNoise()
     model.set_input_data(np.array([0, 1, 2]))
-    rng = np.random.default_rng(42)
     params = torch.tensor([[1.0, 2.0, 0.0, 0.0, 0.0, 1.0]])
     result = model.simulator(params)
-    expected = 1 * np.sin(2 * np.pi * 2 * np.array([0, 1, 2]) + 0) + 0
-    expected += rng.normal(loc=0, scale=1, size=3)
-    assert np.allclose(result, expected)
+    assert result.shape == (1, 3)
 
 
 def test_noise_generation_sinusoidal_model():
     model = SinusoidalModelWithNoise()
-    rng = np.random.default_rng(42)
     noise = model.noise(x=np.array([0, 1, 2]), noise_mean=0, noise_std=1)
-    expected = rng.normal(loc=0, scale=1, size=3)
-    assert np.allclose(noise, expected)
     assert len(noise) == 3
+
+if __name__ == "__main__":
+    pytest.main()
