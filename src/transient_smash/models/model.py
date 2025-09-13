@@ -69,8 +69,7 @@ class Model(ABC):
         Set prior distributions for model parameters.
 
         Args:
-            priors: A dictionary containing prior distribution information
-            for each parameter.
+            priors (dict): A dictionary containing prior distribution information for each parameter.
 
         Returns:
             None
